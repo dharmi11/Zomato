@@ -1,36 +1,37 @@
-const { request } = require('express');
-const foodModel = require('../models/food.model');
-const StorageService = require('../services/storage.service');
-
-
+const foodModel = require("../models/food.model");
+const StorageService = require("../services/storage.service");
+const { v4: uuid } = require("uuid");
 
 const createFood = async (req, res) => {
-  
-console.log("Food Partner Info:", req.foodPartner);
+  try {
+      const fileploadResult = await StorageService.uploadImage(
+      req.file.buffer,
+      uuid()
+    );
 
- 
-const fileUploadResult = await StorageService.uploadImage(
-    req.file.buffer,
-    req.file.originalname
-  );
-  console.log("Food Data:", req.body);
-  console.log("Uploaded File:", req.file);
-  res.status(201).json({
-    success: true,
-    message: "Food Created Successfully",
-    foodPartner: {
-      id: req.foodPartner._id,
-      fullName: req.foodPartner.fullName,
-      email: req.foodPartner.email
-    },
-    requestedFood: {
-      name: req.body.name,
-      description: req.body.description,
-      video: req.file.originalname
-    }
-  });
+    const foodItem = await foodModel.create({
+      name:req.body.name ,
+      description:req.body.description ,
+      video:fileploadResult.url,
+      foodPartner: req.foodPartner._id
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Food created successfully",
+      data: foodItem,
+    });
+
+
+  } catch (error) {
+    console.error("Create Food Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
 };
 
-module.exports = {
-    createFood,
-} ;
+module.exports = { createFood };

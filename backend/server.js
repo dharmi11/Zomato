@@ -1,7 +1,9 @@
 // Start Server npx nodemon server.js
+
+require("dotenv").config();
 const app = require("./src/app");
 const connectDB = require("./src/db/db");
-require("dotenv").config();
+
 connectDB()
 
 const PORT = 9090 ;
