@@ -5,7 +5,9 @@ const authFoodPartnerMiddleware = async (req, res, next) => {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.status(401).json({ message: "Unauthorized, No token found" });
+    return res.status(401).json({
+      message: "Please login first",
+    });
   }
 
   try {
@@ -14,7 +16,9 @@ const authFoodPartnerMiddleware = async (req, res, next) => {
     const foodPartner = await FoodPartnerModel.findById(decoded.id);
 
     if (!foodPartner) {
-      return res.status(401).json({ message: "Unauthorized, Food Partner not found" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized, Food Partner not found" });
     }
 
     req.foodPartner = foodPartner;

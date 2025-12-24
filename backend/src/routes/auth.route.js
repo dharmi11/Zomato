@@ -1,5 +1,5 @@
 const express = require('express');
-const { registerUser, loginUser, getUsers, logoutUser, LoginFoodPartner, logooutFoodPartner, registerFoodPartner, getFoodPartnes } = require('../controllers/auth.controller');
+const { registerUser, loginUser, getUsers, logoutUser, LoginFoodPartner,  registerFoodPartner,  logoutFoodPartner, getFoodPartners } = require('../controllers/auth.controller');
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/user/logout' , logoutUser) ;
 
 router.post('/FoodPartner/register' , registerFoodPartner)
 router.post('/FoodPartner/login' , LoginFoodPartner) ;
-router.get('/FoodPartner/logout' , logooutFoodPartner) ;
-router.get('/FoodPartner/get' , getFoodPartnes);
+router.get('/FoodPartner/logout' , logoutFoodPartner) ;
+router.get('/FoodPartner/get' , getFoodPartners);
 
 module.exports = router ;

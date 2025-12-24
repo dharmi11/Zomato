@@ -10,7 +10,7 @@ const registerUser = async (req, res) => {
 
     const existingUser = await User.findOne({ email });
 
-    if (existingUser) {f
+    if (existingUser) {
       return res.status(400).json({
         success: false,
         message: "User already exists",
@@ -25,14 +25,14 @@ const registerUser = async (req, res) => {
       password: hashedPassword,
     });
 
-    const token = jwt.sign(
-      {
-        id: newUser._id,
-      },
-      process.env.JWT_SECRET
-    );
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
 
-    res.cookie("token", token);
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
 
     return res.status(201).json({
       success: true,
@@ -53,237 +53,237 @@ const registerUser = async (req, res) => {
   }
 };
 
-const loginUser = async (req,res)=>{
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const existingUser = await User.findOne({ email });
 
-  const {email, password} = req.body ;
-  try{
-    const existingUser = await User.findOne({email});
-
-    if(!existingUser){
+    if (!existingUser) {
       return res.status(400).json({
         success: false,
-        message:"User does not exist",
-     
-      })
+        message: "User does not exist",
+      });
     }
 
-    const isPasswordValid = await bcrypt.compare(password , existingUser.password) ;
-    if(!isPasswordValid){
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+    if (!isPasswordValid) {
       return res.status(400).json({
         success: false,
-        message:"Invalid credentials"
-      })
+        message: "Invalid credentials",
+      });
     }
 
-  const token = jwt.sign(
-      {
-        id: existingUser._id,
-      },
-      process.env.JWT_SECRET
-    );  
-    res.cookie("token" , token) ;
-    return res.status(200).json({ 
-      success:true,
-      message:"User logged in successfully",
-      existingUser:{
+    const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
+    return res.status(200).json({
+      success: true,
+      message: "User logged in successfully",
+      existingUser: {
         id: existingUser._id,
         email: existingUser.email,
-        fullName: existingUser.fullName,  
+        fullName: existingUser.fullName,
       },
-      token, 
-    }) ;
-
-
-  }catch(error){
+      token,
+    });
+  } catch (error) {
     return res.status(500).json({
-      success: false, 
+      success: false,
       message: "Error in logging in user",
       error: error.message,
     });
   }
 };
 
-const getUsers = async (req,res) => {
-  try{
-    const users = await User.find({}) ;
+const getUsers = async (req, res) => {
+  try {
+    const users = await User.find({});
     return res.status(200).json({
-      success:true,
-      message:"Users fetched successfully",
+      success: true,
+      message: "Users fetched successfully",
       users,
-    }) ;  
-  }catch(error){
+    });
+  } catch (error) {
     return res.status(500).json({
-      success:false,
-      message:"Error in fetching users",
+      success: false,
+      message: "Error in fetching users",
       error: error.message,
-    }) ;
+    });
   }
-} ;
+};
 
-
-
-
-const logoutUser = (req,res) => {
-  try{
-  res.clearCookie("token") ;
-  return res.status(200).json({
-    success:true, 
-    message:"User logged out successfully",
-    User   : User 
-
-  })
-}
-catch(error){
-  return res.status(500).json({
-    success:false,
-    message:"Error in logging out user",
-    error: error.message, 
-
-  }) ;
-}
-} ;
-
-
+const logoutUser = (req, res) => {
+  try {
+    res.clearCookie("token");
+    return res.status(200).json({
+      success: true,
+      message: "User logged out successfully",
+      User: User,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in logging out user",
+      error: error.message,
+    });
+  }
+};
 
 // Food Partner Cpontroller
 
-const registerFoodPartner = async (req,res) =>{
-  try{
-    const {fullName , email , password} = req.body ;
+const registerFoodPartner = async (req, res) => {
+  try {
+    const { fullName, email, password } = req.body;
 
-    const existingFoodPartner = await FoodPartnerModel.findOne({email}) ;
+    const existingFoodPartner = await FoodPartnerModel.findOne({ email });
 
-    if(existingFoodPartner){
+    if (existingFoodPartner) {
       return res.status(400).json({
-        success:false,
-        message:"Food Partner already exists",
-      }) ;  
-
+        success: false,
+        message: "Food Partner already exists",
+      });
     }
-    const hashedPassword = await bcrypt.hash(password , 10) ;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const FoodPartner = await FoodPartnerModel.create({
-      fullName ,
+      fullName,
       email,
-      password:hashedPassword
+      password: hashedPassword,
     });
-    const token = jwt.sign({
-      id : FoodPartner._id,
-    },
-    process.env.JWT_SECRET  );
-    
-    res.cookie("token",token);
+    const token = jwt.sign(
+      { id: existingFoodPartner._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
     return res.status(201).json({
-      success:true,
-      message:"Food Partner registered successfully",
-      FoodPartner:{
-        id: FoodPartner._id,  
+      success: true,
+      message: "Food Partner registered successfully",
+      FoodPartner: {
+        id: FoodPartner._id,
         email: FoodPartner.email,
         fullName: FoodPartner.fullName,
       },
-      token,  
-    })
-
-  }
-  catch(error){
+      token,
+    });
+  } catch (error) {
     return res.status(500).json({
-      success:false,
-      message:"Error in registering Food Partner",
+      success: false,
+      message: "Error in registering Food Partner",
       error: error.message,
-    }) ;
+    });
   }
-}
+};
 
-const LoginFoodPartner = async (req,res) =>{
-  try{
-    const {email , password } = req.body ;
+const LoginFoodPartner = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-    const existingFoodPartner = await FoodPartnerModel.findOne({email}) ;
+    const existingFoodPartner = await FoodPartnerModel.findOne({ email });
 
-    if(!existingFoodPartner){
+    if (!existingFoodPartner) {
       return res.status(400).json({
-        success:false,
-        message:"Food Partner does not exist",
-      }) ;     
+        success: false,
+        message: "Food Partner does not exist",
+      });
     }
-    const isMatchPassword = await bcrypt.compare(password , existingFoodPartner.password) ;
-    if(!isMatchPassword){
+    const isMatchPassword = await bcrypt.compare(
+      password,
+      existingFoodPartner.password
+    );
+    if (!isMatchPassword) {
       return res.status(400).json({
-        success:false,
-        message:"Invalid credentials",
-      }) ;     
+        success: false,
+        message: "Invalid credentials",
+      });
     }
-    const token = jwt.sign({
-      id : existingFoodPartner._id,
-    },
-    process.env.JWT_SECRET  );    
+    const token = jwt.sign(
+      {
+        id: existingFoodPartner._id,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "strict",
+    });
 
     return res.status(200).json({
-      success:true,
-      message:"Food Partner logged in successfully",
-      existingFoodPartner:{   
+      success: true,
+      message: "Food Partner logged in successfully",
+      existingFoodPartner: {
         id: existingFoodPartner._id,
         email: existingFoodPartner.email,
         fullName: existingFoodPartner.fullName,
       },
-      token,  
-    }) ;
-
-  }
-  catch(error){
+      token,
+    });
+  } catch (error) {
     return res.status(500).json({
-      success:false,
-      message:"Error in logging in Food Partner",
+      success: false,
+      message: "Error in logging in Food Partner",
       error: error.message,
-    })
+    });
   }
-}
+};
 
-const logooutFoodPartner = (req,res) =>{
-  try{
-    res.clearCookie("token") ;
+const logoutFoodPartner = (req, res) => {
+  try {
+    // const loggedOutFoodPartner = req.foodPartner;
+
+    res.clearCookie("token");
+
     return res.status(200).json({
-      success:true,
-      message:"Food Partner logged out successfully",
-    }) ;  
-  }
-  catch(error){
+      success: true,
+      message: "Food Partner logged out successfully!",
+    });
+  } catch (error) {
     return res.status(500).json({
-      success:false,
-      message:"Error in logging out Food Partner ,, nothing else to say",
+      success: false,
+      message: "Error in logging out Food Partner",
       error: error.message,
-    }) ;
+    });
   }
-}
+};
 
-const getFoodPartnes = async (req,res) =>{
-
-  try{
-    const foodPartners = await FoodPartnerModel.find({}) ;
+const getFoodPartners = async (req, res) => {
+  try {
+    const foodPartners = await FoodPartnerModel.find({});
     return res.status(200).json({
-      success:true,
-      message:"Food Partners fetched successfully",
+      success: true,
+      message: "Food Partners fetched successfully",
       foodPartners,
-    }) ;  
-  }
-  catch(error){
-    return res.status(500).json({ 
-      success:false,
-      message:"Error in fetching Food Partners",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error in fetching Food Partners",
       error: error.message,
-    }) ;
-
+    });
   }
-}
+};
 
 module.exports = {
   registerUser,
   loginUser,
-  getUsers,    
+  getUsers,
   logoutUser,
 
   registerFoodPartner,
   LoginFoodPartner,
-  logooutFoodPartner,
-  getFoodPartnes,
+  logoutFoodPartner,
+  getFoodPartners,
 };
